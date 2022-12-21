@@ -10,9 +10,11 @@ import com.checkproject.model.repository.ProductRepository;
 import com.checkproject.service.DiscountCardService;
 import com.checkproject.service.ProductService;
 import com.checkproject.utils.CheckBuilderUtil;
+import com.checkproject.utils.CheckSaverUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final CheckBuilderUtil checkBuilderUtil;
     private final DiscountCardService discountCardService;
+    private final CheckSaverUtil checkSaverUtil;
 
     @Override
     public List<ProductDto> getProducts() {
@@ -55,6 +58,12 @@ public class ProductServiceImpl implements ProductService {
         }
         check.append(checkBuilderUtil.buildFooter(total));
         System.out.println(check);
+        try {
+            checkSaverUtil.saveToTxt(check.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
@@ -87,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void applyDiscountCard(DiscountCardDto discountCardDto, List<ProductDto> productDtoList) {
-        if (discountCardService.isExists(discountCardDto)) {
+        if (discountCardDto != null && discountCardService.isExists(discountCardDto)) {
             for (ProductDto productDto : productDtoList) {
                 productDto.setDiscountRate(Constants.DISCOUNT_CARD_RATE);
             }
